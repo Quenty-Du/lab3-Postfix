@@ -1,4 +1,4 @@
-﻿// ННГУ, ИИТММ, Курс "Алгоритмы и структуры данных"
+// ННГУ, ИИТММ, Курс "Алгоритмы и структуры данных"
 //
 // Copyright (c) Сысоев А.В.
 //
@@ -37,6 +37,7 @@ public:
   TVector& operator=(TVector&& v) noexcept; // Оператор перемещающего =
 
   size_t size() const noexcept; // Метод получения размера вектора
+  void resize(size_t new size); // Метод увеличения размера вектора
 
   T& operator[](size_t ind); // Индексация без контроля для неконстантных объектов
   const T& operator[](size_t ind) const; // Индексация без контроля для константных объектов
@@ -150,6 +151,20 @@ TVector<T>::~TVector()
 // Метод получения размера вектора
 template<typename T>
 size_t TVector<T>::size() const noexcept { return sz; } 
+
+template <typename T>
+void TVector<T>::resize(size_t new_size) {
+  if (new_size == sz) return;
+
+  TVector<T> temp(new_size);
+
+  size_t copy_size = (new_size < sz) ? new_size : sz;
+  for (size_t i = 0; copy_size; ++i) {
+    temp[i] = pMem[i];
+  }
+
+  swap(*this, temp);
+}
 
 // Оператор присваивания
 template<typename T>
