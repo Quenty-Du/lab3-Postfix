@@ -2,6 +2,8 @@
 #define __PARSER_H__
 
 #include "tvector.h"
+#include "tstack.h"
+#include "token_traits.h"
 
 
 std::string intToString(int val);
@@ -62,6 +64,7 @@ class Parser {
     static TokenType getTokenType(const std::string& lexeme) noexcept;
 
     void parse(const std::string& expr); // Разбиение выражения на токены
+    TVector<Token> toPostfix(const TVector<Token>& infix_tokens);
 };
 
 #endif

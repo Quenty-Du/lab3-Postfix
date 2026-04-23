@@ -219,3 +219,71 @@ void Parser::parse(const std::string& expr) {
 
     infix_tokens.shrinkToFit();
 }
+
+
+TVector<Token> Parser::toPostfix(const TVector<Token>& infix_tokens) {
+    TStack<Token> operators;
+    TVector<Token> postfix_form;
+    size_t expr_len = infix_tokens.size();
+
+    for (size_t i = 0; i < expr_len; ++i) {
+        TokenType type = infix_tokens[i].type;
+
+        if (TokenTraits::isOperand(type)) {
+            postfix_form.pushBack(infix_tokens[i]);
+            continue;
+        }
+
+        if (TokenTraits::isOperator(type)) {
+            while (!operators.isEmpty() && TokenTraits::getPriority(operators.top().type) >= TokenTraits::getPriority(type)) {
+                postfix_form.pushBack(operators.top());
+                operators.pop();
+            }
+
+            operators.push(infix_tokens[i]);
+            continue;
+        }
+
+        if (TokenTraits::isFunction(type)) {
+            operators.push(infix_tokens[i]);
+            continue;
+        }
+
+        if (type == TokenType::LEFT_PAREN) {
+            operators.push(infix_tokens[i]);
+            continue;
+        }
+
+        if (type == TokenType::COMMA) {
+            while (operators.top().type != TokenType::LEFT_PAREN) {
+                postfix_form.pushBack(operators.top());
+                operators.pop();
+            }
+
+            continue;
+        }
+
+        if (type == TokenType::RIGHT_PAREN) {
+            while (operators.top().type != TokenType::LEFT_PAREN) {
+                postfix_form.pushBack(operators.top());
+                operators.pop();
+            }
+
+            operators.pop();
+
+            if (!operators.isEmpty() && TokenTraits::isFunction(operators.top().type)) {
+                postfix_form.pushBack(operators.top());
+                operators.pop();
+            }
+
+            continue;
+        }
+    }
+
+    while (!operators.isEmpty()) {
+        postfix_form.pushBack(operators.top());
+        operators.pop();
+    }
+
+    return postfix_form;
+}

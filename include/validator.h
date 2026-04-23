@@ -15,12 +15,7 @@ enum class Validate {
 
 // Пространство имен для функций валидации
 namespace Validator {
-    bool isOperand(TokenType type);
-    bool isFunction(TokenType type);
-    bool canStartExpr(TokenType type);
-    bool canEndExpr(TokenType type);
-
-    void validation(const TVector<Token>& infix_form);
+    void validation(const TVector<Token>& infix_tokens);
 
     void validateOperands(const TVector<Token>& token, size_t pos);
 

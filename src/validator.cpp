@@ -1,34 +1,9 @@
 #include "../include/validator.h"
 
 
-bool Validator::isOperand(TokenType type) {
-    return type == TokenType::NUMBER ||
-           type == TokenType::VARIABLE ||
-           type == TokenType::CONSTANT;
-}
-
-
-bool Validator::isFunction(TokenType type) {
-    return (type >= TokenType::SQRT && type <= TokenType::FACT);
-}
-
-
-bool Validator::canStartExpr(TokenType type) {
-    return isOperand(type) ||
-           isFunction(type) ||
-           type == TokenType::LEFT_PAREN;
-}
-
-
-bool Validator::canEndExpr(TokenType type) {
-    return isOperand(type) ||
-           type == TokenType::RIGHT_PAREN;
-}
-
-
 void Validator::validateOperands(const TVector<Token>& token, size_t pos) {
     if (pos > 0) {
-        if (canStartExpr(token[pos].type) && canEndExpr(token[pos - 1].type)) {
+        if (TokenTraits::canStartExpr(token[pos].type) && TokenTraits::canEndExpr(token[pos - 1].type)) {
             throw std::invalid_argument("Missed operator");
         }
     }
@@ -39,7 +14,7 @@ bool Validator::validateBinaryOperators(const TVector<Token>& token, size_t pos)
     bool not_skip = token[pos].type >= TokenType::PLUS && token[pos].type <= TokenType::DIV;
 
     if (not_skip) {
-        if (pos == 0 || pos + 1 == token.size() || !canEndExpr(token[pos - 1].type) || !canStartExpr(token[pos + 1].type)) { 
+        if (pos == 0 || pos + 1 == token.size() || !TokenTraits::canEndExpr(token[pos - 1].type) || !TokenTraits::canStartExpr(token[pos + 1].type)) { 
             throw std::invalid_argument("Missed operator argument");
         }
     }
@@ -83,7 +58,7 @@ bool Validator::validateBrackets(const TVector<Token>& token, size_t pos, TStack
 
 
 bool Validator::validateFunctions(const TVector<Token>& token, size_t pos, TStack<Validate>& argument_check, bool& expect_func_args) {
-    bool not_skip = isFunction(token[pos].type);
+    bool not_skip = TokenTraits::isFunction(token[pos].type);
 
     if (not_skip) {
         expect_func_args = true;
@@ -112,7 +87,7 @@ bool Validator::validateCommas(const TVector<Token>& token, size_t pos, TStack<V
             throw std::invalid_argument("Comma outside the function");
         }
         else if (pos != 0 && pos + 1 < token.size()) {
-            if (!canEndExpr(token[pos - 1].type) || !canStartExpr(token[pos + 1].type)) {
+            if (!TokenTraits::canEndExpr(token[pos - 1].type) || !TokenTraits::canStartExpr(token[pos + 1].type)) {
                 throw std::invalid_argument("Invalid operand or missed bracket before unary operator");
             }
         }
@@ -127,7 +102,7 @@ bool Validator::validateUnaryOperators(const TVector<Token>& token, size_t pos) 
     bool not_skip = token[pos].type == TokenType::UNARY_PLUS || token[pos].type == TokenType::UNARY_MINUS;
 
     if (not_skip) {
-        if (pos + 1 == token.size() || !canStartExpr(token[pos + 1].type)) {
+        if (pos + 1 == token.size() || !TokenTraits::canStartExpr(token[pos + 1].type)) {
             throw std::invalid_argument("Missed unary operator operand");
         }
     }
@@ -143,35 +118,35 @@ void Validator::validateDots(const TVector<Token>& token, size_t pos) {
 }
 
 
-void Validator::validation(const TVector<Token>& infix_form) {
+void Validator::validation(const TVector<Token>& infix_tokens) {
     TStack<Validate> argument_check;
     TStack<Validate> brackets_check;
     bool expect_func_args = false;
     brackets_check.push(Validate::START);
 
-    size_t expr_len = infix_form.size();
+    size_t expr_len = infix_tokens.size();
 
     for (size_t i = 0; i < expr_len; ++i) {
 
-        validateOperands(infix_form, i); // Обязательная проверка
+        validateOperands(infix_tokens, i); // Обязательная проверка
 
-        if (validateBinaryOperators(infix_form, i)) {
+        if (validateBinaryOperators(infix_tokens, i)) {
             continue;
         }
-        if (validateBrackets(infix_form, i, brackets_check, argument_check, expect_func_args)) {
+        if (validateBrackets(infix_tokens, i, brackets_check, argument_check, expect_func_args)) {
             continue;
         }
-        if (validateFunctions(infix_form, i, argument_check, expect_func_args)) {
+        if (validateFunctions(infix_tokens, i, argument_check, expect_func_args)) {
             continue;
         }
-        if (validateCommas(infix_form, i, argument_check)) {
+        if (validateCommas(infix_tokens, i, argument_check)) {
             continue;
         }
-        if (validateUnaryOperators(infix_form, i)) {
+        if (validateUnaryOperators(infix_tokens, i)) {
             continue;
         }
         
-        validateDots(infix_form, i); 
+        validateDots(infix_tokens, i); 
     }
 
     if (brackets_check.top() != Validate::START) {

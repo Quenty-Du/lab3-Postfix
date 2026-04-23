@@ -20,7 +20,7 @@ class TStack {
         // Методы работы со стеком
         void pop();
         void push(const T& val);
-        void clean();
+        void clear();
 };
 
 template <typename T>
