@@ -14,19 +14,19 @@ enum class Validate {
 
 
 // Пространство имен для функций валидации
-namespace Validator {
-    void validation(const TVector<Token>& infix_tokens);
+class Validator {
+    static void validateOperands(const TVector<Token>& token, size_t pos);
 
-    void validateOperands(const TVector<Token>& token, size_t pos);
-
-    bool validateBinaryOperators(const TVector<Token>& token, size_t pos);
-    bool validateBrackets(const TVector<Token>& token, size_t pos, TStack<Validate>& bracket_check, TStack<Validate>& argument_check, bool& expect_func_args);
-    bool validateFunctions(const TVector<Token>& token, size_t pos, TStack<Validate>& argument_check, bool& expect_func_args);
-    bool validateCommas(const TVector<Token>& token, size_t pos, TStack<Validate>& argument_check);
-    bool validateUnaryOperators(const TVector<Token>& token, size_t pos);
+    static bool validateBinaryOperators(const TVector<Token>& token, size_t pos);
+    static bool validateBrackets(const TVector<Token>& token, size_t pos, TStack<Validate>& bracket_check, TStack<Validate>& argument_check, bool& expect_func_args);
+    static bool validateFunctions(const TVector<Token>& token, size_t pos, TStack<Validate>& argument_check, bool& expect_func_args);
+    static bool validateCommas(const TVector<Token>& token, size_t pos, TStack<Validate>& argument_check);
+    static bool validateUnaryOperators(const TVector<Token>& token, size_t pos);
     
-    void validateDots(const TVector<Token>& token, size_t pos);  
-}
+    static void validateDots(const TVector<Token>& token, size_t pos);  
+public:
+    static void validation(const TVector<Token>& infix_tokens);
+};
 
 
 #endif

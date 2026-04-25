@@ -2,7 +2,7 @@
 #define __TOKEN_TRAITS_H__
 
 
-#include "parser.h"
+enum class TokenType;
 
 
 namespace TokenTraits {

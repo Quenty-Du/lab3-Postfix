@@ -81,11 +81,11 @@ data(static_cast<T*>(::operator new(cap * sizeof(T))))
 
 template<typename T>
 TVector<T>::TVector(const TVector& v) : 
-sz(v.sz),
+sz(0),
 cap(v.cap), 
 data(static_cast<T*>(::operator new(v.cap * sizeof(T))))
 {
-    for (size_t i = 0; i < sz; ++i)
+    for (size_t i = 0; i < v.sz; ++i)
     {
         pushBack(v.data[i]);
     }
@@ -114,13 +114,13 @@ TVector<T>::~TVector() {
 
 
 template <typename T>
-size_t TVector<T>::size() const {
+size_t TVector<T>::size() const noexcept {
     return sz;
 }
 
 
 template<typename T>
-size_t TVector<T>::capacity() const {
+size_t TVector<T>::capacity() const noexcept {
  return cap;
 } 
 
@@ -217,6 +217,10 @@ void TVector<T>::pushBack(const T& element) {
 
 template <typename T>
 void TVector<T>::popBack() {
+    if (sz == 0) {
+        throw std::logic_error("Vector is empty");
+    }
+
     sz--;
     data[sz].~T();
 }
@@ -241,7 +245,7 @@ TVector<T>& TVector<T>::operator=(const TVector& v) {
 
 
 template<typename T>
-TVector<T>& TVector<T>::operator=(TVector&& v) {
+TVector<T>& TVector<T>::operator=(TVector&& v) noexcept {
     swap(*this, v);
     return *this;
 }
@@ -261,7 +265,7 @@ const T& TVector<T>::operator[](size_t ind) const {
 
 template<typename T>
 T& TVector<T>::at(size_t ind) {
-    if (ind >= cap) throw std::out_of_range("Index out of range");
+    if (ind >= sz) throw std::out_of_range("Index out of range");
 
     return data[ind];
 }
@@ -269,14 +273,14 @@ T& TVector<T>::at(size_t ind) {
 
 template<typename T>
 const T& TVector<T>::at(size_t ind) const {
-    if (ind >= cap) throw std::out_of_range("Index out of range");
+    if (ind >= sz) throw std::out_of_range("Index out of range");
 
     return data[ind];
 }
 
 
 template<typename T>
-bool TVector<T>::operator==(const TVector& v) const {
+bool TVector<T>::operator==(const TVector& v) const noexcept {
     if (sz != v.sz) return false;
 
     for (size_t i = 0; i < sz; ++i)
@@ -289,7 +293,7 @@ bool TVector<T>::operator==(const TVector& v) const {
 
 
 template<typename T>
-bool TVector<T>::operator!=(const TVector& v) const {
+bool TVector<T>::operator!=(const TVector& v) const noexcept {
     return !(*this == v);
 }
 

@@ -1,110 +1,20 @@
 #include "../include/parser.h"
-
-
-std::string intToString(int val) {
-    if (val == 0) return "0";
-    std::string result;
-    bool negative = (val < 0);
-    if (negative) {
-         val = -val;
-    }
-    while (val > 0) {
-        result = char('0' + val % 10) + result;
-        val /= 10;
-    }
-    if (negative) {
-        result = "-" + result;
-    }
-    return result;
-}
+#include "../include/validator.h"
+#include "../include/token_traits.h"
+#include "../include/string_lib.h"
 
 
 Token::Token(TokenType t, const std::string& val)
     : type(t), value(val) {
-
 }
 
 
-bool Parser::isSpace(char c) {
-    return c == ' ';
-}
-
-
-bool Parser::isDigit(char c) {
-    return c >= '0' && c <= '9';
-}
-
-
-bool Parser::isLetter(char c) {
-    return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
-}
-
-
-bool Parser::isDot(char c) {
-    return c == '.';
-}
-
-
-bool Parser::isParen(char c) {
-    return c == '(' || c == ')';
-}
-
-
-bool Parser::isBinaryOperator(char c) {
-    return c == '+' || c == '-' || c == '/' || c == '*';
-}
-
-
-bool Parser::isComma(char c) {
-    return c == ',';
-}
-
-
-bool Parser::isUnary(size_t token_count) {
+bool Parser::isUnary(size_t token_count) noexcept {
     return (token_count == 0 || infix_tokens[token_count - 1].type == TokenType::LEFT_PAREN);
 }
 
 
-std::string Parser::extractNumber(const std::string& expr, size_t& pos) {
-    std::string result;
-    size_t length = expr.length();
-    while ((pos < length) && (isDigit(expr[pos]) || isDot(expr[pos]))) {
-        result += expr[pos];
-        ++pos;
-    }
-
-    return result;
-}
-
-
-std::string Parser::extractWord(const std::string& expr, size_t& pos) {
-    std::string result;
-    size_t length = expr.length();
-    while ((pos < length) && (isLetter(expr[pos]) || isDigit(expr[pos]))) {
-        result += expr[pos];
-        ++pos;
-    }
-
-    return result;
-}
-
-
-std::string Parser::toLower(const std::string& input_word) {
-    std::string lower_word;
-    size_t word_length = input_word.length();
-    for (size_t i = 0; i < word_length; ++i) {
-        if (input_word[i] >= 'A' && input_word[i] <= 'Z') {
-            lower_word += input_word[i] + 32;
-        }
-        else {
-            lower_word += input_word[i];
-        }
-    }
-
-    return lower_word;
-}
-
-TokenType Parser::getTokenType(const std::string& lexeme) {
+TokenType Parser::getTokenType(const std::string& lexeme) noexcept {
     static const char* function_names[] = {
         "sqrt", "pow", "log",
         "sin", "cos", "tg", "ctg", "asin", "acos", "atg", "actg",
@@ -143,40 +53,40 @@ void Parser::parse(const std::string& expr) {
     size_t i = 0;
 
     while(i < expr_len) {
-        if (isSpace(expr[i])) {
+        if (StrLib::isSpace(expr[i])) {
             ++i;
             continue;
         }
 
-        if (isDigit(expr[i])) {
-            std::string number = extractNumber(expr, i);
+        if (StrLib::isDigit(expr[i])) {
+            std::string number = StrLib::extractNumber(expr, i);
 
             infix_tokens.pushBack(Token(TokenType::NUMBER, number));
             continue;
         }
 
-        if (isLetter(expr[i])) {
-            std::string word = extractWord(expr, i);
-            std::string lower_word = toLower(word);
+        if (StrLib::isLetter(expr[i])) {
+            std::string word = StrLib::extractWord(expr, i);
+            std::string lower_word = StrLib::toLower(word);
             TokenType token = getTokenType(lower_word);
 
-            infix_tokens.pushBack(Token(token, word));
+            infix_tokens.pushBack(Token(token, lower_word));
             continue;
         }
 
-        if (isDot(expr[i])) {
+        if (StrLib::isDot(expr[i])) {
             infix_tokens.pushBack(Token(TokenType::DOT, "."));
             ++i;
             continue;
         }
 
-        if (isParen(expr[i])) {
+        if (StrLib::isParen(expr[i])) {
             infix_tokens.pushBack((expr[i] == '(') ? Token(TokenType::LEFT_PAREN, "(") : Token(TokenType::RIGHT_PAREN, ")"));
             ++i;
             continue;
         }
 
-        if (isBinaryOperator(expr[i])) {
+        if (StrLib::isBinaryOperator(expr[i])) {
             TokenType token;
             std::string oper = std::string(1, expr[i]);
 
@@ -210,7 +120,7 @@ void Parser::parse(const std::string& expr) {
             continue;
         }
 
-        if (isComma(expr[i])) {
+        if (StrLib::isComma(expr[i])) {
             infix_tokens.pushBack(Token(TokenType::COMMA, ","));
             ++i;
             continue;
@@ -221,22 +131,21 @@ void Parser::parse(const std::string& expr) {
 }
 
 
-TVector<Token> Parser::toPostfix(const TVector<Token>& infix_tokens) {
+void Parser::toPostfix() {
     TStack<Token> operators;
-    TVector<Token> postfix_form;
     size_t expr_len = infix_tokens.size();
 
     for (size_t i = 0; i < expr_len; ++i) {
         TokenType type = infix_tokens[i].type;
 
         if (TokenTraits::isOperand(type)) {
-            postfix_form.pushBack(infix_tokens[i]);
+            postfix_tokens.pushBack(infix_tokens[i]);
             continue;
         }
 
         if (TokenTraits::isOperator(type)) {
             while (!operators.isEmpty() && TokenTraits::getPriority(operators.top().type) >= TokenTraits::getPriority(type)) {
-                postfix_form.pushBack(operators.top());
+                postfix_tokens.pushBack(operators.top());
                 operators.pop();
             }
 
@@ -256,7 +165,7 @@ TVector<Token> Parser::toPostfix(const TVector<Token>& infix_tokens) {
 
         if (type == TokenType::COMMA) {
             while (operators.top().type != TokenType::LEFT_PAREN) {
-                postfix_form.pushBack(operators.top());
+                postfix_tokens.pushBack(operators.top());
                 operators.pop();
             }
 
@@ -265,14 +174,14 @@ TVector<Token> Parser::toPostfix(const TVector<Token>& infix_tokens) {
 
         if (type == TokenType::RIGHT_PAREN) {
             while (operators.top().type != TokenType::LEFT_PAREN) {
-                postfix_form.pushBack(operators.top());
+                postfix_tokens.pushBack(operators.top());
                 operators.pop();
             }
 
             operators.pop();
 
             if (!operators.isEmpty() && TokenTraits::isFunction(operators.top().type)) {
-                postfix_form.pushBack(operators.top());
+                postfix_tokens.pushBack(operators.top());
                 operators.pop();
             }
 
@@ -281,9 +190,19 @@ TVector<Token> Parser::toPostfix(const TVector<Token>& infix_tokens) {
     }
 
     while (!operators.isEmpty()) {
-        postfix_form.pushBack(operators.top());
+        postfix_tokens.pushBack(operators.top());
         operators.pop();
     }
+}
 
-    return postfix_form;
+
+const TVector<Token>& Parser::getPostfix(const std::string& expr) {
+    if (!parsed) {
+        parse(expr);
+        Validator::validation(infix_tokens);
+        toPostfix();
+        parsed = true;
+    }
+    
+    return postfix_tokens;
 }

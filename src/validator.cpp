@@ -1,4 +1,5 @@
 #include "../include/validator.h"
+#include "../include/token_traits.h"
 
 
 void Validator::validateOperands(const TVector<Token>& token, size_t pos) {
@@ -39,15 +40,22 @@ bool Validator::validateBrackets(const TVector<Token>& token, size_t pos, TStack
             bracket_check.push(Validate::PAREN);
         }
     }
+
     if (second_skip) {
         if (bracket_check.top() == Validate::FUNC) {
             argument_check.pop();
+            if (argument_check.top() != Validate::FUNC) {
+                throw std::invalid_argument("Not enough function arguments");
+            }
             argument_check.pop();
         }
+
         bracket_check.pop();
+
         if (bracket_check.isEmpty()) {
             throw std::invalid_argument("Opening parenthesis is missing");
         }
+
         if (pos + 1 < token.size() && token[pos + 1].type == TokenType::LEFT_PAREN) {
             throw std::invalid_argument("Missed operator or function name");
         }
@@ -62,10 +70,13 @@ bool Validator::validateFunctions(const TVector<Token>& token, size_t pos, TStac
 
     if (not_skip) {
         expect_func_args = true;
+
         if (pos + 1 == token.size() || token[pos + 1].type != TokenType::LEFT_PAREN) {
             throw std::invalid_argument("Missed opening parenthesis of function");
         }
+
         argument_check.push(Validate::FUNC);
+
         if (token[pos].type == TokenType::POW) {
             argument_check.push(Validate::ARG);
             argument_check.push(Validate::ARG);
@@ -91,7 +102,12 @@ bool Validator::validateCommas(const TVector<Token>& token, size_t pos, TStack<V
                 throw std::invalid_argument("Invalid operand or missed bracket before unary operator");
             }
         }
+
         argument_check.pop();
+
+        if (argument_check.top() == Validate::FUNC) {
+            throw std::invalid_argument("Not enough function arguments");
+        }
     }
 
     return not_skip;
@@ -133,15 +149,19 @@ void Validator::validation(const TVector<Token>& infix_tokens) {
         if (validateBinaryOperators(infix_tokens, i)) {
             continue;
         }
+
         if (validateBrackets(infix_tokens, i, brackets_check, argument_check, expect_func_args)) {
             continue;
         }
+
         if (validateFunctions(infix_tokens, i, argument_check, expect_func_args)) {
             continue;
         }
+
         if (validateCommas(infix_tokens, i, argument_check)) {
             continue;
         }
+        
         if (validateUnaryOperators(infix_tokens, i)) {
             continue;
         }

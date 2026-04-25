@@ -3,10 +3,6 @@
 
 #include "tvector.h"
 #include "tstack.h"
-#include "token_traits.h"
-
-
-std::string intToString(int val);
 
 
 enum class TokenType {
@@ -41,30 +37,21 @@ struct Token {
 
 
 class Parser {
-
     TVector<Token> infix_tokens; // Считанная строка токенов
     TVector<Token> postfix_tokens; // Переведенная в постфиксную форму строка токенов
+    bool parsed = false;
 
     // Методы для определения типа токена
-    static bool isSpace(char c) noexcept;
-    static bool isDigit(char c) noexcept;
-    static bool isLetter(char c) noexcept;
-    static bool isDot(char c) noexcept;
-    static bool isParen(char c) noexcept;
-    static bool isBinaryOperator(char c) noexcept;
-    static bool isComma(char c) noexcept;
     bool isUnary(size_t token_count) noexcept;
 
-    // Методы для выделения токенов из строки
-    static std::string extractNumber(const std::string& expr, size_t& pos);
-    static std::string extractWord(const std::string& expr, size_t& pos);
-
     // Методы для создания токенов
-    static std::string toLower(const std::string& input_word);
     static TokenType getTokenType(const std::string& lexeme) noexcept;
 
     void parse(const std::string& expr); // Разбиение выражения на токены
-    TVector<Token> toPostfix(const TVector<Token>& infix_tokens);
+    void toPostfix();
+
+public:
+    const TVector<Token>& getPostfix(const std::string& expr);
 };
 
 #endif

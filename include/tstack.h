@@ -29,13 +29,13 @@ TStack<T>::TStack(size_t input_data_size) : data(input_data_size) {
 
 
 template <typename T>
-size_t TStack<T>::size() const {
+size_t TStack<T>::size() const noexcept {
     return data.size();
 }
 
 
 template <typename T>
-bool TStack<T>::isEmpty() const {
+bool TStack<T>::isEmpty() const noexcept {
     return data.size() == 0;
 }
 

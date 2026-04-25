@@ -1,4 +1,5 @@
 #include "../include/token_traits.h"
+#include "../include/parser.h"
 
 
 bool TokenTraits::isOperand(TokenType type) {
