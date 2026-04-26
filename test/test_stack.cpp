@@ -1,4 +1,4 @@
-// тесты для стека
+// пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
 
-#include "stack.h"
+#include "tstack.h"
 #include <gtest.h>
