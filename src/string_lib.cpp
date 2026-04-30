@@ -40,7 +40,11 @@ bool StrLib::isNumber(const std::string& input_number) {
     size_t dot_count = 0;
     size_t number_len = input_number.length();
 
-    if ((input_number[0] != '-' && !isDigit(input_number[0])) || !isDigit(input_number[number_len - 1]) || (number_len == 1 && input_number[0] == '-')) {
+    if (input_number[0] != '-' && !isDigit(input_number[0])) {
+        return false;
+    }
+
+    if (!isDigit(input_number[input_number.length() - 1])) {
         return false;
     }
 

@@ -11,6 +11,19 @@ void Validator::validateOperands(const TVector<Token>& token, size_t pos) {
 }
 
 
+bool Validator::validateNumbers(const TVector<Token>& token, size_t pos) {
+    bool not_skip = token[pos].type == TokenType::NUMBER;
+
+    if (not_skip) {
+        if (token[pos].value[token[pos].value.length() - 1] == '.') {
+            throw std::invalid_argument("Dot at the ending of the number detected. Number must end with a digit.");
+        }
+    }
+
+    return not_skip;
+}
+
+
 bool Validator::validateBinaryOperators(const TVector<Token>& token, size_t pos) {
     bool not_skip = token[pos].type >= TokenType::PLUS && token[pos].type <= TokenType::DIV;
 
@@ -146,6 +159,10 @@ void Validator::validation(const TVector<Token>& infix_tokens) {
 
         validateOperands(infix_tokens, i); // Обязательная проверка
 
+        if (validateNumbers(infix_tokens, i)) {
+            continue;
+        }
+        
         if (validateBinaryOperators(infix_tokens, i)) {
             continue;
         }
